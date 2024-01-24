@@ -1,23 +1,18 @@
 version: 0.2
 phases:
-  install:
-    runtime-versions:
-      python: 3.11
   pre_build:
     commands:
-      - echo "Installed Python"
+      - echo "Login into ECR"
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY
   build:
     commands:
-      - echo "Output of Python code is"
-      - python sample.py
+      - echo "Building Image"
       - docker build -t $ECR_REPOSITORY:$CODEBUILD_BUILD_NUMBER .
-      - docker push $ECR_REPOSITORY:$CODEBUILD_BUILD_NUMBER
 
   post_build:
     commands:
-      - echo "Python Program executed successfully"
-      - echo "Image has been build and pushed to AWS ECR"
+      - echo "Pushing Image to Elastic Container Registry"
+      - docker push $ECR_REPOSITORY:$CODEBUILD_BUILD_NUMBER
       - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $ECR_REPOSITORY:$CODEBUILD_BUILD_NUMBER > imagedefinitions.json
 
 artifacts:

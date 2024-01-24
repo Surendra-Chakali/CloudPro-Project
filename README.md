@@ -1,2 +1,0 @@
-# aws-codebuild
-aws codebuild
