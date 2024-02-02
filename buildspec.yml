@@ -4,16 +4,17 @@ phases:
     commands:
       - echo "Login into ECR"
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - Repo_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:$CODEBUILD_BUILD_NUMBER
   build:
     commands:
       - echo "Building Image"
-      - docker build -t $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:$CODEBUILD_BUILD_NUMBER .
+      - docker build -t $Repo_URI .
 
   post_build:
     commands:
       - echo "Pushing Image to Elastic Container Registry"
-      - docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:$CODEBUILD_BUILD_NUMBER
-      - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $ECR_REPOSITORY:$CODEBUILD_BUILD_NUMBER > imagedefinitions.json
+      - docker push $Repo_URI
+      - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $Repo_URI > imagedefinitions.json
 
 artifacts:
   files: imagedefinitions.json
